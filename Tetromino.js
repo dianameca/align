@@ -1,47 +1,82 @@
+/**
+ * Tetromino block definition and functionality.
+ * Shape and color constant maps tetromino types to attributes.
+ *    - shape: array of matrices where each matrix represents a rotation state,
+ *      matrix uses 1s and 0s to define filled (1) and empty (0) blocks of the shape.
+ *    - color
+ *    - currentRotation: tracks rotation state in the shape array
+ *    - current x and y offset on the game grid
+ */
+
 const TETROMINOS = {
-    I: [
-      [[1, 1, 1, 1]],         // Horizontal
-      [[1], [1], [1], [1]],   // Vertical
+  I: {
+    shape: [
+      [[1, 1, 1, 1]],         // horizontal
+      [[1], [1], [1], [1]],   // vertical
     ],
-    J: [
+    color: 'cyan',
+  },
+  J: {
+    shape: [
       [[0, 0, 1], [1, 1, 1]],  // L-shape
-      [[1, 0, 0], [1, 1, 1]],  // Rotated
+      [[1, 0, 0], [1, 1, 1]],  // rotated
     ],
-    L: [
+    color: 'blue',
+  },
+  L: {
+    shape: [
       [[1, 0, 0], [1, 1, 1]],  // L-shape
-      [[0, 0, 1], [1, 1, 1]],  // Rotated
+      [[0, 0, 1], [1, 1, 1]],  // rotated
     ],
-    O: [
-      [[1, 1], [1, 1]],        // Square
+    color: 'orange',
+  },
+  O: {
+    shape: [
+      [[1, 1], [1, 1]],        // square
     ],
-    S: [
+    color: 'yellow',
+  },
+  S: {
+    shape: [
       [[0, 1, 1], [1, 1, 0]],  // Z-shape
-      [[1, 0], [1, 1], [0, 1]],// Rotated
+      [[1, 0], [1, 1], [0, 1]],// rotated
     ],
-    T: [
+    color: 'green',
+  },
+  T: {
+    shape: [
       [[0, 1, 0], [1, 1, 1]],  // T-shape
-      [[1, 0], [1, 1], [1, 0]],// Rotated
+      [[1, 0], [1, 1], [1, 0]],// rotated
     ],
-    Z: [
+    color: 'purple',
+  },
+  Z: {
+    shape: [
       [[1, 1, 0], [0, 1, 1]],  // Z-shape
-      [[0, 1], [1, 1], [1, 0]],// Rotated
+      [[0, 1], [1, 1], [1, 0]],// rotated
     ],
-  };
+    color: 'red',
+  },
+};
 
 export class Tetromino {
-    constructor(type) {
-      this.shape = TETROMINOS[type];
-      this.currentRotation = 0;
-      this.x = 3; // Starting position
-      this.y = 0;
-    }
-  
-    rotate() {
-      this.currentRotation = (this.currentRotation + 1) % this.shape.length;
-    }
-  
-    getCurrentShape() {
-      return this.shape[this.currentRotation];
-    }
+  constructor(type) {
+    const tetrominoData = TETROMINOS[type];
+    this.shape = tetrominoData.shape;
+    this.color = tetrominoData.color;
+    this.currentRotation = 0;
+    this.x = 3; // starting position
+    this.y = 0;
   }
-  
+
+  // current rotation state + 1, cycling through the available shapes
+  // to simulate rotation
+  rotate() {
+    this.currentRotation = (this.currentRotation + 1) % this.shape.length;
+  }
+
+  // returns the current rotation shape matrix
+  getCurrentShape() {
+    return this.shape[this.currentRotation];
+  }
+}

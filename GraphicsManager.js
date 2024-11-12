@@ -1,72 +1,108 @@
-import { Board } from "./Board";
-
+/**
+ * Manages rendering on the canvas.
+ *    - Canvas Sizing
+ *    - Grid Management
+ *    - Drawing Elements
+ *    - Score Display
+ */
 export class GraphicsManager {
-    constructor(canvas, board) {
-      this.canvas = canvas;
-      this.context = canvas.getContext('2d');
-      this.board = board; // Reference to the game board
-      this.cellSize = 30; // Size of each cell in pixels
-    }
-  
-    clear() {
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
+  constructor(canvas, board) {
+    this.canvas = canvas;
+    this.context = canvas.getContext('2d');
+    this.context.imageSmoothingEnabled = true;
+    this.board = board;
+    
+    // set initial canvas size based on window dimensions
+    this.setCanvasSize();
+    
+    // recalculate rows and columns based on canvas size
+    this.updateGridSize();
+  }
 
-    drawGrid() {
-        this.context.strokeStyle = 'rgba(200, 200, 200, 0.5)'; // Light gray color for grid lines
-        for (let x = 0; x <= this.canvas.width; x += this.cellSize) {
-          this.context.beginPath();
-          this.context.moveTo(x, 0);
-          this.context.lineTo(x, this.canvas.height);
-          this.context.stroke();
-        }
-        for (let y = 0; y <= this.canvas.height; y += this.cellSize) {
-          this.context.beginPath();
-          this.context.moveTo(0, y);
-          this.context.lineTo(this.canvas.width, y);
-          this.context.stroke();
+  // adjust canvas size
+  setCanvasSize() {
+    // set the canvas width and height to maintain elongated rectangle
+    this.canvas.width = window.innerWidth * 0.4;
+    this.canvas.height = window.innerHeight * 0.8;
+  }
+
+  // calculate rows and columns that can fit
+  updateGridSize() {
+    this.cellSize = 30;
+    this.rows = Math.floor(this.canvas.height / this.cellSize);
+    this.cols = Math.floor(this.canvas.width / this.cellSize);
+
+    // round down to nearest full cell
+    this.canvas.height = this.rows * this.cellSize;
+    this.canvas.width = this.cols * this.cellSize;
+  }
+
+  // clear canvas, prep for the next frame.
+  clear() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  // iterate through grid, draw each cell with designated color or
+  // a transparent background if unoccupied.
+  drawGrid() {
+    // Use this.board.grid to reference the grid
+    for (let y = 0; y < this.board.grid.length; y++) {
+      for (let x = 0; x < this.board.grid[y].length; x++) {
+        const color = this.board.grid[y][x];
+        if (color) {  // if not empty draw it
+          this.drawCell(x, y, color);
+        } else {  // else draw empty space
+          this.drawCell(x, y, 'transparent');
         }
       }
-  
-    drawBoard() {
-      for (let y = 0; y < this.board.grid.length; y++) {
-        for (let x = 0; x < this.board.grid[y].length; x++) {
-          if (this.board.grid[y][x]) {
-            this.drawCell(x, y, this.board.grid[y][x]);
-          }
-        }
-      }
-    }
-  
-    drawTetromino(tetromino) {
-      const shape = tetromino.getCurrentShape();
-      shape.forEach((row, y) => {
-        row.forEach((value, x) => {
-          if (value) {
-            this.drawCell(tetromino.x + x, tetromino.y + y, value);
-          }
-        });
-      });
-    }
-  
-    drawCell(x, y, value) {
-      const colors = ['transparent', 'cyan', 'blue', 'orange', 'yellow', 'green', 'purple', 'red']; // Define colors for each tetromino type
-      this.context.fillStyle = colors[value];
-      this.context.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
-      this.context.strokeStyle = 'black';
-      this.context.strokeRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize); // Draw border
-    }
-  
-    displayScore(score) {
-      this.context.fillStyle = 'white';
-      this.context.font = '24px Arial';
-      this.context.fillText(`Score: ${score}`, 10, 30);
-    }
-  
-    render(tetromino, score) {
-      this.clear(); // Clear the canvas for the next frame
-      this.drawBoard(); // Draw the current state of the board
-      this.drawTetromino(tetromino); // Draw the current tetromino
-      this.displayScore(score); // Draw the score
     }
   }
+
+  // draw only the current state of the board with placed blocks
+  drawBoard() {
+    for (let y = 0; y < this.board.grid.length; y++) {
+      for (let x = 0; x < this.board.grid[y].length; x++) {
+        if (this.board.grid[y][x]) {
+          this.drawCell(x, y, this.board.grid[y][x]);
+        }
+      }
+    }
+  }
+
+  // render the current tetromino on the canvas
+  drawTetromino(tetromino) {
+    const shape = tetromino.getCurrentShape();
+    shape.forEach((row, y) => {
+      row.forEach((value, x) => {
+        if (value) {
+          this.drawCell(tetromino.x + x, tetromino.y + y, tetromino.color);
+        }
+      });
+    });
+  }
+  // fill cell with color/border
+  drawCell(x, y, color) {
+    this.context.fillStyle = color;
+    this.context.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+
+    this.context.strokeStyle = 'black';
+    this.context.strokeRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+  }
+
+  // display current score on the canvas.
+  displayScore(score) {
+    this.context.fillStyle = 'black';
+    this.context.font = '30px Arial';
+    this.context.fillText(`Score: ${score}`, 10, 30);
+  }
+
+  // central rendering function that clears the canvas, draws the grid, board, tetromino,
+  // and score in a single frame update.
+  render(tetromino, score) {
+    this.clear(); // clear for next frame
+    this.drawGrid(); // draw grid with dark lines
+    this.drawBoard(); // draw the current state
+    this.drawTetromino(tetromino); // draw current tetromino
+    this.displayScore(score);
+  }
+}
