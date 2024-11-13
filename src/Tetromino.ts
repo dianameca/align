@@ -8,7 +8,12 @@
  *    - current x and y offset on the game grid
  */
 
-const TETROMINOS = {
+interface TetrominoShape {
+  shape: number[][][];
+  color: string;
+}
+
+const TETROMINOS: { [key: string]: TetrominoShape } = {
   I: {
     shape: [
       [[1, 1, 1, 1]],         // horizontal
@@ -60,7 +65,13 @@ const TETROMINOS = {
 };
 
 export class Tetromino {
-  constructor(type) {
+  shape: number[][][];
+  color: string;
+  currentRotation: number;
+  x: number;
+  y: number;
+
+  constructor(type: keyof typeof TETROMINOS) {
     const tetrominoData = TETROMINOS[type];
     this.shape = tetrominoData.shape;
     this.color = tetrominoData.color;
@@ -69,14 +80,14 @@ export class Tetromino {
     this.y = 0;
   }
 
-  // current rotation state + 1, cycling through the available shapes
-  // to simulate rotation
-  rotate() {
+  // current rotation state + 1, cycling through 
+  // the available shapes to simulate rotation
+  rotate(): void {
     this.currentRotation = (this.currentRotation + 1) % this.shape.length;
   }
 
   // returns the current rotation shape matrix
-  getCurrentShape() {
+  getCurrentShape(): number[][] {
     return this.shape[this.currentRotation];
   }
 }
